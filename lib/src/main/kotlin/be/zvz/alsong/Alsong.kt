@@ -58,7 +58,7 @@ class Alsong(
         title: String,
         playtime: Int = 0,
         page: Int = 1,
-        onSuccess: (SearchResult) -> Unit,
+        onSuccess: (List<SearchResult>) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null
     ) = fuelManager.post(
         "/v1/search",
@@ -73,7 +73,7 @@ class Alsong(
             }
         }
     )
-        .responseObject<SearchResult>(mapper = mapper) { _, _, result ->
+        .responseObject<List<SearchResult>>(mapper = mapper) { _, _, result ->
             runCatching { handleResponseOrThrow(result) }
                 .mapCatching(onSuccess)
                 .getOrElse { onFailure?.invoke(it) }
@@ -145,7 +145,7 @@ class Alsong(
 
     fun getLyricByMurekaId(
         murekaId: Long
-    ): LyricMurekaId = handleResponseOrThrow(
+    ): List<LyricMurekaId> = handleResponseOrThrow(
         fuelManager.post(
             "/v1/lookupListByMurekaId",
             listOf(
@@ -153,14 +153,14 @@ class Alsong(
                 "encData" to encKey
             )
         )
-            .responseObject<LyricMurekaId>(mapper = mapper)
+            .responseObject<List<LyricMurekaId>>(mapper = mapper)
             .third
     )
 
     @JvmOverloads
     fun getLyricByMurekaId(
         murekaId: Long,
-        onSuccess: (LyricMurekaId) -> Unit,
+        onSuccess: (List<LyricMurekaId>) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null
     ) = fuelManager.post(
         "/v1/lookupListByMurekaId",
@@ -169,7 +169,7 @@ class Alsong(
             "encData" to encKey
         )
     )
-        .responseObject<LyricMurekaId>(mapper = mapper) { _, _, result ->
+        .responseObject<List<LyricMurekaId>>(mapper = mapper) { _, _, result ->
             runCatching { handleResponseOrThrow(result) }
                 .mapCatching(onSuccess)
                 .getOrElse { onFailure?.invoke(it) }
