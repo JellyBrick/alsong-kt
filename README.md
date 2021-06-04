@@ -1,4 +1,4 @@
-# alsong-kt
+# alsong-kt [![Build Status](https://github.com/JellyBrick/alsong-kt/workflows/Java%20CI/badge.svg)](https://github.com/JellyBrick/alsong-kt/actions)
 
 Alsong api wrapper written in Kotlin
 
