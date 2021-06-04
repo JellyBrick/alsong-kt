@@ -3,9 +3,7 @@ name: Java CI
 on:
   push:
     branches:
-      - 'master'
-      - '!dependabot**'
-      - '!dev'
+      - '**'
 
 jobs:
   build:
