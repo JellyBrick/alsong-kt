@@ -18,13 +18,17 @@ object Utils {
     private val PUBLIC_KEY = KEY_FACTORY.generatePublic(KEY_SPEC)
     private val LYRIC_REGEX = Regex("^(.)?\\[(\\d+):(\\d\\d).(\\d\\d)](.*)\$")
 
-    fun parseLyric(lyrics: String): Map<Long, List<String>> = TreeMap<Long, List<String>>().apply {
+    fun parseLyric(lyrics: String): Map<Long, List<String>> = TreeMap<Long, MutableList<String>>().apply {
         lyrics.split("<br>").forEach {
             LYRIC_REGEX.matchEntire(it)?.let { match ->
                 val groupValues = match.groupValues
                 val timestamp = 10 * groupValues[2].toLong() * 60 * 100 + groupValues[3].toLong() * 100 + groupValues[4].toLong()
-                this[timestamp] = mutableListOf<String>().apply {
-                    add(groupValues[5])
+                if (this.containsKey(timestamp)) {
+                    this.getValue(timestamp).add(groupValues[5])
+                } else {
+                    this[timestamp] = mutableListOf<String>().apply {
+                        add(groupValues[5])
+                    }
                 }
             }
         }
