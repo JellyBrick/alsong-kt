@@ -6,4 +6,24 @@ Alsong api wrapper written in Kotlin
 
 ## Install (maven, gradle...etc)
 
+### GitHub Packages
+
 https://github.com/JellyBrick/alsong-kt/packages/828660
+
+### Jitpack [![Jitpack Status](https://jitpack.io/v/JellyBrick/alsong-kt.svg)](https://jitpack.io/#JellyBrick/alsong-kt)
+
+```groovy
+allprojects {
+  repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
+}
+```
+
+```groovy
+dependencies {
+    implementation 'com.github.JellyBrick:alsong-kt:1.0.2'
+}
+```
+
