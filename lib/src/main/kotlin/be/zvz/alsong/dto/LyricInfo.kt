@@ -11,7 +11,7 @@ data class LyricInfo(
     val lyrics: Map<Long, List<String>>,
     val albumName: String,
     val infoId: Long,
-    val registerFirstEmail: String,
+    val registerFirstEmail: String?,
     val registerComment: String,
     val registerName: String,
     val registerFirstName: String,
