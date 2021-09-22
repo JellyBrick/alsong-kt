@@ -15,15 +15,15 @@ data class LyricLookup(
     val countBad: Long,
     val statusId: Long,
     val registerFirstEmail: String?,
-    val registerComment: String,
-    val registerName: String,
-    val registerFirstName: String,
-    val registerFirstUrl: String,
+    val registerComment: String?,
+    val registerName: String?,
+    val registerFirstName: String?,
+    val registerFirstUrl: String?,
     val registDate: String,
-    val registerPhone: String,
+    val registerPhone: String?,
     val registerFirstPhone: String?,
     val artist: String,
     val title: String,
-    val registerFirstComment: String,
-    val registerEmail: String
+    val registerFirstComment: String?,
+    val registerEmail: String?
 )

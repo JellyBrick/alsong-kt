@@ -12,14 +12,14 @@ data class LyricInfo(
     val albumName: String,
     val infoId: Long,
     val registerFirstEmail: String?,
-    val registerComment: String,
-    val registerName: String,
-    val registerFirstName: String,
-    val registerFirstUrl: String,
-    val registerPhone: String,
+    val registerComment: String?,
+    val registerName: String?,
+    val registerFirstName: String?,
+    val registerFirstUrl: String?,
+    val registerPhone: String?,
     val artistName: String,
     val registerFirstPhone: String?,
     val titleName: String,
-    val registerFirstComment: String,
-    val registerEmail: String
+    val registerFirstComment: String?,
+    val registerEmail: String?
 )
