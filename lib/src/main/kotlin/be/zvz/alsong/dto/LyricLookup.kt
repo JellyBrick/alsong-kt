@@ -21,7 +21,7 @@ data class LyricLookup(
     val registerFirstUrl: String,
     val registDate: String,
     val registerPhone: String,
-    val registerFirstPhone: String,
+    val registerFirstPhone: String?,
     val artist: String,
     val title: String,
     val registerFirstComment: String,
