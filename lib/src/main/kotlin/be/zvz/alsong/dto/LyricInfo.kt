@@ -18,7 +18,7 @@ data class LyricInfo(
     val registerFirstUrl: String,
     val registerPhone: String,
     val artistName: String,
-    val registerFirstPhone: String,
+    val registerFirstPhone: String?,
     val titleName: String,
     val registerFirstComment: String,
     val registerEmail: String
