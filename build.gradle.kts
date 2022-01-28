@@ -62,7 +62,6 @@ publishing {
     }
     publications {
         register<MavenPublication>("alsong-kt") {
-            artifactId = "alsong-kt"
             from(components["java"])
             artifact(sourcesJar)
         }
