@@ -15,7 +15,7 @@ https://github.com/JellyBrick/alsong-kt/packages/828660
 ```groovy
 allprojects {
   repositories {
-		...
+		//...
 		maven { url 'https://jitpack.io' }
 	}
 }

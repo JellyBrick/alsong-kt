@@ -26,6 +26,9 @@ class Alsong(
 
     init {
         fuelManager.basePath = Utils.BASE_URL
+        fuelManager.baseHeaders = mapOf(
+            "User-Agent" to "android"
+        )
     }
 
     @JvmOverloads
@@ -179,7 +182,7 @@ class Alsong(
         encKey = Utils.getEncKey()
     }
 
-    private fun <T> handleResponse(result: FuelResult<T, FuelError>): T? =
+    private fun <T> handleResponse(result: FuelResult<T, FuelError>): T =
         result.getOrElse {
             throw InvalidDataReceivedException(it.exception)
         }
