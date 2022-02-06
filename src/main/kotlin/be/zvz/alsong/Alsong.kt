@@ -22,8 +22,6 @@ class Alsong(
         .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE),
     private val fuelManager: FuelManager = FuelManager()
 ) {
-    private var encKey = Utils.getEncKey()
-
     init {
         fuelManager.basePath = Utils.BASE_URL
         fuelManager.baseHeaders = mapOf(
@@ -44,7 +42,7 @@ class Alsong(
                 "title" to title,
                 "artist" to artist,
                 "page" to page,
-                "encData" to encKey
+                "encData" to Utils.encKey
             ).apply {
                 if (playtime != 0) {
                     add("playtime" to playtime)
@@ -69,7 +67,7 @@ class Alsong(
             "title" to title,
             "artist" to artist,
             "page" to page,
-            "encData" to encKey
+            "encData" to Utils.encKey
         ).apply {
             if (playtime != 0) {
                 add("playtime" to playtime)
@@ -89,7 +87,7 @@ class Alsong(
             "/v1/info",
             listOf(
                 "info_id" to lyricId,
-                "encData" to encKey
+                "encData" to Utils.encKey
             )
         )
             .responseObject<LyricInfo>(mapper = mapper)
@@ -105,7 +103,7 @@ class Alsong(
         "/v1/info",
         listOf(
             "info_id" to lyricId,
-            "encData" to encKey
+            "encData" to Utils.encKey
         )
     )
         .responseObject<LyricInfo>(mapper = mapper) { _, _, result ->
@@ -121,7 +119,7 @@ class Alsong(
             "/v1/lookup",
             listOf(
                 "md5" to md5,
-                "encData" to encKey
+                "encData" to Utils.encKey
             )
         )
             .responseObject<LyricLookup>(mapper = mapper)
@@ -137,7 +135,7 @@ class Alsong(
         "/v1/lookup",
         listOf(
             "md5" to md5,
-            "encData" to encKey
+            "encData" to Utils.encKey
         )
     )
         .responseObject<LyricLookup>(mapper = mapper) { _, _, result ->
@@ -153,7 +151,7 @@ class Alsong(
             "/v1/lookupListByMurekaId",
             listOf(
                 "murekaid" to murekaId,
-                "encData" to encKey
+                "encData" to Utils.encKey
             )
         )
             .responseObject<List<LyricMurekaId>>(mapper = mapper)
@@ -169,7 +167,7 @@ class Alsong(
         "/v1/lookupListByMurekaId",
         listOf(
             "murekaid" to murekaId,
-            "encData" to encKey
+            "encData" to Utils.encKey
         )
     )
         .responseObject<List<LyricMurekaId>>(mapper = mapper) { _, _, result ->
@@ -177,10 +175,6 @@ class Alsong(
                 .mapCatching(onSuccess)
                 .getOrElse { onFailure?.invoke(it) }
         }
-
-    fun refreshEncKey() {
-        encKey = Utils.getEncKey()
-    }
 
     private fun <T> handleResponse(result: FuelResult<T, FuelError>): T =
         result.getOrElse {
