@@ -6,5 +6,5 @@ data class SearchResult(
     val artist: String,
     val album: String,
     val title: String,
-    val registerDate: String
+    val registerDate: String? = null
 )
