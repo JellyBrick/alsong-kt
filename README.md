@@ -23,7 +23,7 @@ allprojects {
 
 ```groovy
 dependencies {
-    implementation 'com.github.JellyBrick:alsong-kt:1.1.1'
+    implementation 'com.github.JellyBrick:alsong-kt:1.1.2'
 }
 ```
 
