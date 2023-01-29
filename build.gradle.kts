@@ -30,7 +30,7 @@ dependencies {
     // Use the Kotlin JDK 8 standard library.
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8")
 
-    implementation(group = "com.github.kittinunf.fuel", name = "fuel", version = "2.3.1")
+    api(group = "com.github.kittinunf.fuel", name = "fuel", version = "2.3.1")
     implementation(group = "com.github.kittinunf.fuel", name = "fuel-jackson", version = "2.3.1")
 
     implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.14.1")
