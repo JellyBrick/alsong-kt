@@ -33,7 +33,7 @@ dependencies {
     api(group = "com.github.kittinunf.fuel", name = "fuel", version = "2.3.1")
     implementation(group = "com.github.kittinunf.fuel", name = "fuel-jackson", version = "2.3.1")
 
-    implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.14.2")
+    implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.15.2")
 
     // Use the Kotlin test library.
     testImplementation(group = "org.jetbrains.kotlin", name = "kotlin-test")
