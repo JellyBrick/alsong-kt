@@ -146,6 +146,27 @@ class AlsongTest {
         )
     }
 
+    @Test fun testGetMultiLineLyricByHash() {
+        val classUnderTest = Alsong(
+            fuelManager = FuelManager().apply {
+                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+                    override fun getAcceptedIssuers(): Array<X509Certificate>? = null
+                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
+                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) = Unit
+                })
+
+                socketFactory = SSLContext.getInstance("SSL").apply {
+                    init(null, trustAllCerts, java.security.SecureRandom())
+                }.socketFactory
+
+                hostnameVerifier = HostnameVerifier { _, _ -> true }
+            },
+        )
+        println(
+            classUnderTest.getLyricByHash("9059c9f520838290f091eb528ac04855"),
+        )
+    }
+
     @Test fun testGetLyricByMurekaId() {
         val classUnderTest = Alsong(
             fuelManager = FuelManager().apply {
