@@ -24,7 +24,7 @@ object LyricSerializer : KSerializer<Map<Long, List<String>>> {
         decoder.decodeString().split("<br>").forEach {
             LYRIC_REGEX.matchEntire(it)?.let { match ->
                 val groupValues = match.groupValues
-                val timestamp = 10 * groupValues[2].toLong() * 60 * 100 + groupValues[3].toLong() * 100 + groupValues[4].toLong()
+                val timestamp = 10 * (groupValues[2].toLong() * 60 * 100 + groupValues[3].toLong() * 100 + groupValues[4].toLong())
                 if (containsKey(timestamp)) {
                     getValue(timestamp).add(groupValues[5])
                 } else {
