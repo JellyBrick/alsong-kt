@@ -1,7 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.20"
+    kotlin("jvm") version "1.8.22"
+    kotlin("plugin.serialization") version "1.8.22"
     id("org.jmailen.kotlinter") version "3.14.0"
     `java-library`
     `maven-publish`
@@ -10,6 +11,9 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+    maven {
+        url = uri("https://s01.oss.sonatype.org/content/repositories/releases/")
+    }
 }
 
 val githubRepo = project.property("github.repo") as String
@@ -31,9 +35,10 @@ dependencies {
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8")
 
     api(group = "com.github.kittinunf.fuel", name = "fuel", version = "2.3.1")
-    implementation(group = "com.github.kittinunf.fuel", name = "fuel-jackson", version = "2.3.1")
+    implementation(group = "com.github.kittinunf.fuel", name = "fuel-kotlinx-serialization", version = "2.3.1")
 
-    implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.14.2")
+    implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.5.1")
+    implementation(group = "io.github.pdvrieze.xmlutil", name = "serialization-jvm", version = "0.86.0")
 
     // Use the Kotlin test library.
     testImplementation(group = "org.jetbrains.kotlin", name = "kotlin-test")

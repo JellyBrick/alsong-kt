@@ -5,7 +5,6 @@ import java.security.spec.X509EncodedKeySpec
 import java.text.SimpleDateFormat
 import java.util.Base64
 import java.util.Date
-import java.util.TreeMap
 import javax.crypto.Cipher
 
 object Utils {
@@ -16,33 +15,18 @@ object Utils {
         .getInstance("RSA")
         .generatePublic(
             X509EncodedKeySpec(
-                Base64.getDecoder().decode(KEY)
-            )
+                Base64.getDecoder().decode(KEY),
+            ),
         )
-    private val LYRIC_REGEX = Regex("^(.)?\\[(\\d+):(\\d\\d).(\\d\\d)](.*)\$")
     private val DATE_FORMAT = SimpleDateFormat("_yyyyMMdd_HHmmss")
     private val CIPHER = Cipher.getInstance("RSA/ECB/PKCS1Padding").apply {
         init(Cipher.ENCRYPT_MODE, PUBLIC_KEY)
     }
 
-    fun parseLyric(lyrics: String): Map<Long, List<String>> = TreeMap<Long, MutableList<String>>().apply {
-        lyrics.split("<br>").forEach {
-            LYRIC_REGEX.matchEntire(it)?.let { match ->
-                val groupValues = match.groupValues
-                val timestamp = 10 * groupValues[2].toLong() * 60 * 100 + groupValues[3].toLong() * 100 + groupValues[4].toLong()
-                if (containsKey(timestamp)) {
-                    getValue(timestamp).add(groupValues[5])
-                } else {
-                    this[timestamp] = mutableListOf(groupValues[5])
-                }
-            }
-        }
-    }
-
     val encKey: String
         get() = buildString {
             CIPHER.doFinal(
-                "ALSONG_ANDROID${DATE_FORMAT.format(Date())}".encodeToByteArray()
+                "ALSONG_ANDROID${DATE_FORMAT.format(Date())}".encodeToByteArray(),
             ).forEach { append("%02X".format(it)) }
         }
 }

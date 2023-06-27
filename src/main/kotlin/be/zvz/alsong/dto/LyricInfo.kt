@@ -1,13 +1,14 @@
 package be.zvz.alsong.dto
 
-import be.zvz.alsong.deserializer.LyricDeserializer
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import be.zvz.alsong.serializer.LyricSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class LyricInfo(
     val registerUrl: String,
-    @JsonProperty("lyric")
-    @JsonDeserialize(using = LyricDeserializer::class)
+    @SerialName("lyric")
+    @Serializable(with = LyricSerializer::class)
     val lyrics: Map<Long, List<String>>,
     val albumName: String,
     val infoId: Long,
@@ -21,5 +22,5 @@ data class LyricInfo(
     val registerFirstPhone: String?,
     val titleName: String,
     val registerFirstComment: String?,
-    val registerEmail: String?
+    val registerEmail: String?,
 )

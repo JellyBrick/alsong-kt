@@ -1,9 +1,10 @@
 package be.zvz.alsong.dto
 
-import be.zvz.alsong.deserializer.LyricDeserializer
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import be.zvz.alsong.serializer.LyricSerializer
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class LyricMurekaId(
-    @JsonDeserialize(using = LyricDeserializer::class)
-    val lyric: Map<Long, List<String>>
+    @Serializable(with = LyricSerializer::class)
+    val lyric: Map<Long, List<String>>,
 )
