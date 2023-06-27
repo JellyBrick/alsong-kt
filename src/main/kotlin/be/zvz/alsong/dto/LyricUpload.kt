@@ -76,7 +76,7 @@ data class LyricUpload(
                 @Serializable(with = LyricSerializer::class)
                 @XmlSerialName(value = "strLyric")
                 @XmlElement(true)
-                val lyrics: Map<String, List<String>>,
+                val lyrics: Map<Long, List<String>>,
                 @XmlSerialName(value = "nPlayTime")
                 @XmlElement(true)
                 val playtime: Long,

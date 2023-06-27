@@ -242,7 +242,7 @@ constructor(
 
     private fun generateUploadLyricPostRequest(
         isModifying: Boolean,
-        lyric: Map<String, List<String>>,
+        lyric: Map<Long, List<String>>,
         md5: String,
         registerData: UserData,
         fileName: String,
@@ -291,7 +291,7 @@ constructor(
     @JvmOverloads
     fun uploadLyric(
         isModifying: Boolean,
-        lyric: Map<String, List<String>>,
+        lyric: Map<Long, List<String>>,
         md5: String,
         registerData: UserData,
         fileName: String,
@@ -328,7 +328,7 @@ constructor(
     @JvmOverloads
     fun uploadLyric(
         isModifying: Boolean,
-        lyric: Map<String, List<String>>,
+        lyric: Map<Long, List<String>>,
         md5: String,
         registerData: UserData,
         fileName: String,
