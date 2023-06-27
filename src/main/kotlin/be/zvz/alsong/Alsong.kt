@@ -251,7 +251,7 @@ constructor(
         album: String = "",
         playtime: Long = -1,
         originalLyricId: Long = -1,
-    ) = fuelManager.post("https://lyrics.alsong.co.kr/alsongwebservice/service1.asmx")
+    ) = fuelManager.post("http://lyrics.alsong.co.kr/alsongwebservice/service1.asmx")
         .header("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 10; Pixel 3a Build/QQ3A.200805.001)")
         .body(
             xml.encodeToString(
