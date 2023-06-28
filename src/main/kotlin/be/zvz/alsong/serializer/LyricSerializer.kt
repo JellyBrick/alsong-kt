@@ -15,10 +15,14 @@ object LyricSerializer : KSerializer<Map<Long, List<String>>> {
     private val LYRIC_REGEX = Regex("^(.)?\\[(\\d+):(\\d\\d).(\\d\\d)](.*)\$")
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LyricDeserializer", PrimitiveKind.STRING)
 
-    // format: MM:SS.CC
+    // format: milliseconds to MM:SS.CC
     private fun timestampToTimeString(
         timestamp: Long,
-    ) = "%02d:%02d.%02d".format(timestamp / 100 / 60 / 10, (timestamp / 100) % 60, timestamp % 100)
+    ) = "%02d:%02d.%02d".format(
+        timestamp / 1000 / 60,
+        timestamp / 1000 % 60,
+        timestamp / 10 % 100,
+    )
 
     override fun deserialize(decoder: Decoder): Map<Long, List<String>> = mutableMapOf<Long, MutableList<String>>().apply {
         decoder.decodeString().split("<br>").forEach {

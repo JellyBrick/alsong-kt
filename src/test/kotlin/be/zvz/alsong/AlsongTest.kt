@@ -1,9 +1,11 @@
 package be.zvz.alsong
 
+import be.zvz.alsong.dto.LyricUpload
 import be.zvz.alsong.dto.LyricUploadResult
 import be.zvz.alsong.serializer.LyricSerializer
 import com.github.kittinunf.fuel.core.FuelManager
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.serializer
 import nl.adaptivity.xmlutil.XmlDeclMode
@@ -71,6 +73,51 @@ class AlsongTest {
         )
 
         println(xml.encodeToString(TestClass(map)))
+    }
+
+    @Test
+    fun testLyricDeserializer() {
+        val testString = """<?xml version="1.1" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
+    <SOAP-ENV:Body>
+        <ns1:UploadLyric
+            xmlns:ns1="ALSongWebServer">
+            <ns1:stQuery>
+                <ns1:nUploadLyricType>2</ns1:nUploadLyricType>
+                <ns1:strMD5>MD5</ns1:strMD5>
+                <ns1:strRegisterFirstName>FirstName</ns1:strRegisterFirstName>
+                <ns1:strRegisterFirstEMail></ns1:strRegisterFirstEMail>
+                <ns1:strRegisterFirstURL></ns1:strRegisterFirstURL>
+                <ns1:strRegisterFirstPhone></ns1:strRegisterFirstPhone>
+                <ns1:strRegisterFirstComment></ns1:strRegisterFirstComment>
+                <ns1:strRegisterName>Name</ns1:strRegisterName>
+                <ns1:strRegisterEMail></ns1:strRegisterEMail>
+                <ns1:strRegisterURL></ns1:strRegisterURL>
+                <ns1:strRegisterPhone></ns1:strRegisterPhone>
+                <ns1:strRegisterComment></ns1:strRegisterComment>
+                <ns1:strFileName>FileName</ns1:strFileName>
+                <ns1:strTitle>Title</ns1:strTitle>
+                <ns1:strArtist>Artist</ns1:strArtist>
+                <ns1:strAlbum>Album</ns1:strAlbum>
+                <ns1:nInfoID>-1</ns1:nInfoID>
+                <ns1:strLyric>[00:00.36]流れ?く空と日?の?間に&lt;br&gt;[00:00.36]나가레츠즈쿠 소라토 히비노 하자마니&lt;br&gt;[00:00.36]계속 이어지는 하늘과 나날들의 사이에&lt;br&gt;[00:03.90]形のない今日をそれでも進む&lt;br&gt;[00:03.90]카타치노나이 쿄-오 소레데모 스스무&lt;br&gt;[00:03.90]형태없는 오늘을 그래도 나아가&lt;br&gt;</ns1:strLyric>
+                <ns1:nPlayTime>100</ns1:nPlayTime>
+                <ns1:strVersion>40040401</ns1:strVersion>
+                <ns1:strMACAddress>Google_armeabi-v7a</ns1:strMACAddress>
+                <ns1:strIPAddress>unknown</ns1:strIPAddress>
+            </ns1:stQuery>
+        </ns1:UploadLyric>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>"""
+        val xml = XML {
+            xmlDeclMode = XmlDeclMode.Charset
+            autoPolymorphic = true
+        }
+
+        println(
+            xml.decodeFromString<LyricUpload>(testString),
+        )
     }
 
     @Test fun testGetResembleLyricList() {
