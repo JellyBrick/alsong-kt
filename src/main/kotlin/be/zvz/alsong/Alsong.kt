@@ -253,6 +253,7 @@ constructor(
         originalLyricId: Long = -1,
     ) = fuelManager.post("http://lyrics.alsong.co.kr/alsongwebservice/service1.asmx")
         .header("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 10; Pixel 3a Build/QQ3A.200805.001)")
+        .header("Content-Type", "application/soap+xml")
         .body(
             xml.encodeToString(
                 LyricUpload(
@@ -366,6 +367,7 @@ constructor(
 
     fun getMaliciousWords(): MaliciousWords = handleResponseOrThrow(
         fuelManager.get("https://aldn.altools.co.kr/alsong/maliciouswords.json")
+            .useHttpCache(true)
             .responseObject<MaliciousWords>(json)
             .third,
     )
@@ -375,6 +377,7 @@ constructor(
         onSuccess: (MaliciousWords) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null,
     ) = fuelManager.get("https://aldn.altools.co.kr/alsong/maliciouswords.json")
+        .useHttpCache(true)
         .responseObject<MaliciousWords>(json) { _, _, result ->
             runCatching { handleResponseOrThrow(result) }
                 .mapCatching(onSuccess)
