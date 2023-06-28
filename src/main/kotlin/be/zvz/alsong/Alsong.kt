@@ -21,6 +21,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
 import nl.adaptivity.xmlutil.XmlDeclMode
+import nl.adaptivity.xmlutil.core.XmlVersion
 import nl.adaptivity.xmlutil.serialization.XML
 import com.github.kittinunf.result.Result as FuelResult
 
@@ -34,6 +35,7 @@ constructor(
         allowStructuredMapKeys = true
     },
     private val xml: XML = XML {
+        xmlVersion = XmlVersion.XML10
         xmlDeclMode = XmlDeclMode.Charset
         autoPolymorphic = true
     },
