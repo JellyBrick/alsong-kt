@@ -317,7 +317,7 @@ constructor(
                 playtime,
                 originalLyricId,
             )
-                .responseObject<LyricUploadResult>(json)
+                .responseObject<LyricUploadResult>(xml)
                 .third,
         )
         fuelManager.get(
@@ -354,7 +354,7 @@ constructor(
         playtime,
         originalLyricId,
     )
-        .responseObject<LyricUploadResult>(json) { _, _, result ->
+        .responseObject<LyricUploadResult>(xml) { _, _, result ->
             runCatching { handleResponseOrThrow(result) }
                 .mapCatching {
                     fuelManager.get(
