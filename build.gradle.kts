@@ -38,7 +38,7 @@ dependencies {
     implementation(group = "com.github.kittinunf.fuel", name = "fuel-kotlinx-serialization", version = "2.3.1")
 
     implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.5.1")
-    implementation(group = "io.github.pdvrieze.xmlutil", name = "serialization-jvm", version = "0.86.0")
+    implementation(group = "io.github.pdvrieze.xmlutil", name = "serialization-jvm", version = "0.86.1")
 
     // Use the Kotlin test library.
     testImplementation(group = "org.jetbrains.kotlin", name = "kotlin-test")
