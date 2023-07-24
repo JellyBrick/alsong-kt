@@ -11,19 +11,26 @@ import be.zvz.alsong.dto.SearchResult
 import be.zvz.alsong.dto.UserData
 import be.zvz.alsong.exception.InvalidDataReceivedException
 import be.zvz.alsong.exception.NoDataReceivedException
-import com.github.kittinunf.fuel.core.FuelError
-import com.github.kittinunf.fuel.core.FuelManager
-import com.github.kittinunf.fuel.serialization.responseObject
-import com.github.kittinunf.result.getOrElse
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
+import kotlinx.serialization.json.decodeFromStream
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.XmlDeclMode
+import nl.adaptivity.xmlutil.core.KtXmlReader
 import nl.adaptivity.xmlutil.core.XmlVersion
 import nl.adaptivity.xmlutil.serialization.XML
-import com.github.kittinunf.result.Result as FuelResult
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.FormBody
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okio.IOException
 
 class Alsong
 @OptIn(ExperimentalSerializationApi::class)
@@ -39,15 +46,36 @@ constructor(
         xmlDeclMode = XmlDeclMode.Charset
         autoPolymorphic = true
     },
-    private val fuelManager: FuelManager = FuelManager(),
+    private val okHttpClient: OkHttpClient = OkHttpClient(),
 ) {
-    init {
-        fuelManager.basePath = Utils.BASE_URL
-        fuelManager.baseHeaders = mapOf(
-            "User-Agent" to "android",
-        )
-    }
+    private val defaultHttpUrl = Utils.BASE_URL.toHttpUrl()
 
+    private fun createResembleLyricListRequest(
+        artist: String,
+        title: String,
+        playtime: Int = 0,
+        page: Int = 1,
+    ) = okHttpClient.newCall(
+        Request.Builder()
+            .header("User-Agent", "android")
+            .url(defaultHttpUrl.resolve("/v1/search")!!)
+            .post(
+                FormBody.Builder()
+                    .add("title", title)
+                    .add("artist", artist)
+                    .add("page", page.toString())
+                    .add("encData", Utils.encKey)
+                    .apply {
+                        if (playtime != 0) {
+                            add("playtime", playtime.toString())
+                        }
+                    }
+                    .build(),
+            )
+            .build(),
+    )
+
+    @OptIn(ExperimentalSerializationApi::class)
     @JvmOverloads
     fun getResembleLyricList(
         artist: String,
@@ -55,21 +83,13 @@ constructor(
         playtime: Int = 0,
         page: Int = 1,
     ): List<SearchResult> = handleResponseOrThrow(
-        fuelManager.post(
-            "/v1/search",
-            mutableListOf(
-                "title" to title,
-                "artist" to artist,
-                "page" to page,
-                "encData" to Utils.encKey,
-            ).apply {
-                if (playtime != 0) {
-                    add("playtime" to playtime)
-                }
-            },
-        )
-            .responseObject<List<SearchResult>>(ListSerializer(SearchResult.serializer()), json)
-            .third,
+        createResembleLyricListRequest(
+            artist,
+            title,
+            playtime,
+            page,
+        ).execute(),
+        json,
     )
 
     @JvmOverloads
@@ -80,24 +100,35 @@ constructor(
         page: Int = 1,
         onSuccess: (List<SearchResult>) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null,
-    ) = fuelManager.post(
-        "/v1/search",
-        mutableListOf(
-            "title" to title,
-            "artist" to artist,
-            "page" to page,
-            "encData" to Utils.encKey,
-        ).apply {
-            if (playtime != 0) {
-                add("playtime" to playtime)
-            }
-        },
+    ) = createResembleLyricListRequest(
+        artist,
+        title,
+        playtime,
+        page,
+    ).enqueue(AsyncJsonCallback(onSuccess, onFailure, json))
+
+    fun createResembleLyricListCountRequest(
+        artist: String,
+        title: String,
+        playtime: Int = 0,
+    ) = okHttpClient.newCall(
+        Request.Builder()
+            .header("User-Agent", "android")
+            .url(defaultHttpUrl.resolve("/v1/search/count")!!)
+            .post(
+                FormBody.Builder()
+                    .add("title", title)
+                    .add("artist", artist)
+                    .add("encData", Utils.encKey)
+                    .apply {
+                        if (playtime != 0) {
+                            add("playtime", playtime.toString())
+                        }
+                    }
+                    .build(),
+            )
+            .build(),
     )
-        .responseObject<List<SearchResult>>(ListSerializer(SearchResult.serializer()), json) { _, _, result ->
-            runCatching { handleResponseOrThrow(result) }
-                .mapCatching(onSuccess)
-                .getOrElse { onFailure?.invoke(it) }
-        }
 
     @JvmOverloads
     fun getResembleLyricListCount(
@@ -105,20 +136,12 @@ constructor(
         title: String,
         playtime: Int = 0,
     ): LyricCount = handleResponseOrThrow(
-        fuelManager.post(
-            "/v1/search/count",
-            mutableListOf(
-                "title" to title,
-                "artist" to artist,
-                "encData" to Utils.encKey,
-            ).apply {
-                if (playtime != 0) {
-                    add("playtime" to playtime.toString())
-                }
-            },
-        )
-            .responseObject<LyricCount>(json)
-            .third,
+        createResembleLyricListCountRequest(
+            artist,
+            title,
+            playtime,
+        ).execute(),
+        json,
     )
 
     @JvmOverloads
@@ -128,36 +151,34 @@ constructor(
         playtime: Int = 0,
         onSuccess: (LyricCount) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null,
-    ) = fuelManager.post(
-        "/v1/search/count",
-        mutableListOf(
-            "title" to title,
-            "artist" to artist,
-            "encData" to Utils.encKey,
-        ).apply {
-            if (playtime != 0) {
-                add("playtime" to playtime.toString())
-            }
-        },
+    ) = createResembleLyricListCountRequest(
+        artist,
+        title,
+        playtime,
+    ).enqueue(AsyncJsonCallback(onSuccess, onFailure, json))
+
+    private fun createLyricByIdRequest(
+        lyricId: Long,
+    ) = okHttpClient.newCall(
+        Request.Builder()
+            .header("User-Agent", "android")
+            .url(defaultHttpUrl.resolve("/v1/info")!!)
+            .post(
+                FormBody.Builder()
+                    .add("info_id", lyricId.toString())
+                    .add("encData", Utils.encKey)
+                    .build(),
+            )
+            .build(),
     )
-        .responseObject<LyricCount>(json) { _, _, result ->
-            runCatching { handleResponseOrThrow(result) }
-                .mapCatching(onSuccess)
-                .getOrElse { onFailure?.invoke(it) }
-        }
 
     fun getLyricById(
         lyricId: Long,
     ): LyricInfo = handleResponseOrThrow(
-        fuelManager.post(
-            "/v1/info",
-            listOf(
-                "info_id" to lyricId,
-                "encData" to Utils.encKey,
-            ),
-        )
-            .responseObject<LyricInfo>(json)
-            .third,
+        createLyricByIdRequest(
+            lyricId,
+        ).execute(),
+        json,
     )
 
     @JvmOverloads
@@ -165,31 +186,32 @@ constructor(
         lyricId: Long,
         onSuccess: (LyricInfo) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null,
-    ) = fuelManager.post(
-        "/v1/info",
-        listOf(
-            "info_id" to lyricId,
-            "encData" to Utils.encKey,
-        ),
+    ) = createLyricByIdRequest(
+        lyricId,
+    ).enqueue(AsyncJsonCallback(onSuccess, onFailure, json))
+
+    private fun createLyricByHash(
+        md5: String,
+    ) = okHttpClient.newCall(
+        Request.Builder()
+            .header("User-Agent", "android")
+            .url(defaultHttpUrl.resolve("/v1/lookup")!!)
+            .post(
+                FormBody.Builder()
+                    .add("md5", md5)
+                    .add("encData", Utils.encKey)
+                    .build(),
+            )
+            .build(),
     )
-        .responseObject<LyricInfo>(json) { _, _, result ->
-            runCatching { handleResponseOrThrow(result) }
-                .mapCatching(onSuccess)
-                .getOrElse { onFailure?.invoke(it) }
-        }
 
     fun getLyricByHash(
         md5: String,
     ): LyricLookup = handleResponseOrThrow(
-        fuelManager.post(
-            "/v1/lookup",
-            listOf(
-                "md5" to md5,
-                "encData" to Utils.encKey,
-            ),
-        )
-            .responseObject<LyricLookup>(json)
-            .third,
+        createLyricByHash(
+            md5,
+        ).execute(),
+        json,
     )
 
     @JvmOverloads
@@ -197,31 +219,32 @@ constructor(
         md5: String,
         onSuccess: (LyricLookup) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null,
-    ) = fuelManager.post(
-        "/v1/lookup",
-        listOf(
-            "md5" to md5,
-            "encData" to Utils.encKey,
-        ),
+    ) = createLyricByHash(
+        md5,
+    ).enqueue(AsyncJsonCallback(onSuccess, onFailure, json))
+
+    private fun createLyricByMurekaIdRequest(
+        murekaId: Long,
+    ) = okHttpClient.newCall(
+        Request.Builder()
+            .header("User-Agent", "android")
+            .url(defaultHttpUrl.resolve("/v1/lookupListByMurekaId")!!)
+            .post(
+                FormBody.Builder()
+                    .add("murekaid", murekaId.toString())
+                    .add("encData", Utils.encKey)
+                    .build(),
+            )
+            .build(),
     )
-        .responseObject<LyricLookup>(json) { _, _, result ->
-            runCatching { handleResponseOrThrow(result) }
-                .mapCatching(onSuccess)
-                .getOrElse { onFailure?.invoke(it) }
-        }
 
     fun getLyricByMurekaId(
         murekaId: Long,
     ): List<LyricMurekaId> = handleResponseOrThrow(
-        fuelManager.post(
-            "/v1/lookupListByMurekaId",
-            listOf(
-                "murekaid" to murekaId,
-                "encData" to Utils.encKey,
-            ),
-        )
-            .responseObject<List<LyricMurekaId>>(ListSerializer(LyricMurekaId.serializer()), json)
-            .third,
+        createLyricByMurekaIdRequest(
+            murekaId,
+        ).execute(),
+        json,
     )
 
     @JvmOverloads
@@ -229,20 +252,11 @@ constructor(
         murekaId: Long,
         onSuccess: (List<LyricMurekaId>) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null,
-    ) = fuelManager.post(
-        "/v1/lookupListByMurekaId",
-        listOf(
-            "murekaid" to murekaId,
-            "encData" to Utils.encKey,
-        ),
-    )
-        .responseObject<List<LyricMurekaId>>(ListSerializer(LyricMurekaId.serializer()), json) { _, _, result ->
-            runCatching { handleResponseOrThrow(result) }
-                .mapCatching(onSuccess)
-                .getOrElse { onFailure?.invoke(it) }
-        }
+    ) = createLyricByMurekaIdRequest(
+        murekaId,
+    ).enqueue(AsyncJsonCallback(onSuccess, onFailure, json))
 
-    private fun generateUploadLyricPostRequest(
+    private fun createUploadLyricPostRequest(
         isModifying: Boolean,
         lyric: Map<Long, List<String>>,
         md5: String,
@@ -253,43 +267,45 @@ constructor(
         album: String = "",
         playtime: Long = -1,
         originalLyricId: Long = -1,
-    ) = fuelManager.post("http://lyrics.alsong.co.kr/alsongwebservice/service1.asmx")
-        .header("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 10; Pixel 3a Build/QQ3A.200805.001)")
-        .header("Content-Type", "application/soap+xml")
-        .body(
-            xml.encodeToString(
-                LyricUpload(
-                    LyricUpload.Body(
-                        LyricUpload.Body.UploadLyric(
-                            LyricUpload.Body.UploadLyric.StQuery(
-                                uploadLyricType = if (isModifying) 2 else 0,
-                                md5 = md5,
-                                registerFirstName = registerData.firstName,
-                                registerFirstEmail = registerData.firstEmail,
-                                registerFirstUrl = registerData.firstUrl,
-                                registerFirstPhone = registerData.firstPhone,
-                                registerFirstComment = registerData.firstComment,
-                                registerName = registerData.name,
-                                registerEmail = registerData.email,
-                                registerUrl = registerData.url,
-                                registerPhone = registerData.phone,
-                                registerComment = registerData.comment,
-                                fileName = fileName,
-                                title = title,
-                                artist = artist,
-                                album = album,
-                                infoId = if (isModifying) originalLyricId else -1,
-                                lyrics = lyric,
-                                playtime = playtime,
-                                version = "40040401",
-                                macAddress = "Google_armeabi-v7a",
-                                ipAddress = "unknown",
+    ) = okHttpClient.newCall(
+        Request.Builder()
+            .url("http://lyrics.alsong.co.kr/alsongwebservice/service1.asmx")
+            .header("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 10; Pixel 3a Build/QQ3A.200805.001)")
+            .post(
+                xml.encodeToString(
+                    LyricUpload(
+                        LyricUpload.Body(
+                            LyricUpload.Body.UploadLyric(
+                                LyricUpload.Body.UploadLyric.StQuery(
+                                    uploadLyricType = if (isModifying) 2 else 0,
+                                    md5 = md5,
+                                    registerFirstName = registerData.firstName,
+                                    registerFirstEmail = registerData.firstEmail,
+                                    registerFirstUrl = registerData.firstUrl,
+                                    registerFirstPhone = registerData.firstPhone,
+                                    registerFirstComment = registerData.firstComment,
+                                    registerName = registerData.name,
+                                    registerEmail = registerData.email,
+                                    registerUrl = registerData.url,
+                                    registerPhone = registerData.phone,
+                                    registerComment = registerData.comment,
+                                    fileName = fileName,
+                                    title = title,
+                                    artist = artist,
+                                    album = album,
+                                    infoId = if (isModifying) originalLyricId else -1,
+                                    lyrics = lyric,
+                                    playtime = playtime,
+                                    version = "40040401",
+                                    macAddress = "Google_armeabi-v7a",
+                                    ipAddress = "unknown",
+                                ),
                             ),
                         ),
                     ),
-                ),
-            ),
-        )
+                ).toRequestBody("application/soap+xml".toMediaType()),
+            ).build(),
+    )
 
     @JvmOverloads
     fun uploadLyric(
@@ -304,8 +320,8 @@ constructor(
         playtime: Long = -1,
         originalLyricId: Long = -1,
     ): LyricUploadResult {
-        val result = handleResponseOrThrow(
-            generateUploadLyricPostRequest(
+        val result: LyricUploadResult = handleResponseOrThrow(
+            createUploadLyricPostRequest(
                 isModifying,
                 lyric,
                 md5,
@@ -316,15 +332,18 @@ constructor(
                 album,
                 playtime,
                 originalLyricId,
-            )
-                .responseObject<LyricUploadResult>(xml)
-                .third,
+            ).execute(),
+            xml,
         )
-        fuelManager.get(
-            "https://alsong-stats.altools.com/v1/${
-                if (isModifying) "request-modifing-lyric-log" else "new-lyric-log"
-            }",
-        ).response { _, _, _ -> }
+        okHttpClient.newCall(
+            Request.Builder()
+                .url(
+                    "https://alsong-stats.altools.com/v1/${
+                        if (isModifying) "request-modifing-lyric-log" else "new-lyric-log"
+                    }",
+                ).get()
+                .build(),
+        ).execute()
         return result
     }
 
@@ -342,7 +361,7 @@ constructor(
         originalLyricId: Long = -1,
         onSuccess: (LyricUploadResult) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null,
-    ) = generateUploadLyricPostRequest(
+    ) = createUploadLyricPostRequest(
         isModifying,
         lyric,
         md5,
@@ -354,52 +373,67 @@ constructor(
         playtime,
         originalLyricId,
     )
-        .responseObject<LyricUploadResult>(xml) { _, _, result ->
-            runCatching { handleResponseOrThrow(result) }
-                .mapCatching {
-                    fuelManager.get(
-                        "https://alsong-stats.altools.com/v1/${
-                            if (isModifying) "request-modifing-lyric-log" else "new-lyric-log"
-                        }",
-                    ).response { _, _, _ -> }
-                    onSuccess(it)
-                }
-                .getOrElse { onFailure?.invoke(it) }
-        }
+        .enqueue(
+            AsyncXmlCallback<LyricUploadResult>({
+                                                     okHttpClient.newCall(
+                                                         Request.Builder()
+                                                             .url(
+                                                                 "https://alsong-stats.altools.com/v1/${
+                                                                     if (isModifying) "request-modifing-lyric-log" else "new-lyric-log"
+                                                                 }",
+                                                             ).get()
+                                                             .build(),
+                                                     ).enqueue(object : Callback {
+                                                         override fun onFailure(call: Call, e: IOException) {
+                                                             onFailure?.invoke(e)
+                                                         }
+
+                                                         override fun onResponse(call: Call, response: Response) {
+                                                             onSuccess(it)
+                                                         }
+                                                     })
+        }, onFailure, xml),
+        )
+
+    private fun createMaliciousWordsRequest() = okHttpClient.newCall(
+        Request.Builder()
+            .header("User-Agent", "android")
+            .url("https://aldn.altools.co.kr/alsong/maliciouswords.json")
+            .build(),
+    )
 
     fun getMaliciousWords(): MaliciousWords = handleResponseOrThrow(
-        fuelManager.get("https://aldn.altools.co.kr/alsong/maliciouswords.json")
-            .useHttpCache(true)
-            .responseObject<MaliciousWords>(json)
-            .third,
+        createMaliciousWordsRequest().execute(),
+        json,
     )
 
     @JvmOverloads
     fun getMaliciousWords(
         onSuccess: (MaliciousWords) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null,
-    ) = fuelManager.get("https://aldn.altools.co.kr/alsong/maliciouswords.json")
-        .useHttpCache(true)
-        .responseObject<MaliciousWords>(json) { _, _, result ->
-            runCatching { handleResponseOrThrow(result) }
-                .mapCatching(onSuccess)
-                .getOrElse { onFailure?.invoke(it) }
-        }
+    ) = createMaliciousWordsRequest().enqueue(AsyncJsonCallback(onSuccess, onFailure, json))
+
+    private fun createMatchLyricRequest(
+        md5: String,
+        lyricId: Long,
+    ) = okHttpClient.newCall(
+        Request.Builder()
+            .header("User-Agent", "android")
+            .url("https://aldn.altools.co.kr/alsong/matchlyric.json")
+            .post(
+                FormBody.Builder()
+                    .add("encData", Utils.encKey)
+                    .add("md5", md5)
+                    .add("info_id", lyricId.toString())
+                    .build(),
+            )
+            .build(),
+    )
 
     fun matchLyric(
         md5: String,
         lyricId: Long,
-    ) {
-        fuelManager.post(
-            "/v1/matchLyric",
-            listOf(
-                "encData" to Utils.encKey,
-                "md5" to md5,
-                "info_id" to lyricId,
-            ),
-        )
-            .responseString()
-    }
+    ): String = createMatchLyricRequest(md5, lyricId).execute().body.string()
 
     @JvmOverloads
     fun matchLyric(
@@ -407,25 +441,63 @@ constructor(
         lyricId: Long,
         onSuccess: (String) -> Unit,
         onFailure: ((Throwable) -> Unit)? = null,
-    ) = fuelManager.post(
-        "/v1/matchLyric",
-        listOf(
-            "encData" to Utils.encKey,
-            "md5" to md5,
-            "info_id" to lyricId,
-        ),
-    )
-        .responseString { _, _, result ->
-            runCatching { handleResponseOrThrow(result) }
+    ) = createMatchLyricRequest(md5, lyricId).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            onFailure?.invoke(e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            onSuccess(response.body.string())
+        }
+    })
+
+    @OptIn(ExperimentalXmlUtilApi::class)
+    private inline fun <reified T> handleResponse(result: Response, serializer: XML): T = when {
+        !result.isSuccessful -> throw InvalidDataReceivedException(result)
+        else -> serializer.decodeFromReader(KtXmlReader(result.body.charStream()))
+    }
+
+    private inline fun <reified T> handleResponseOrThrow(result: Response, serializer: XML): T =
+        handleResponse(result, serializer) ?: throw NoDataReceivedException()
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private inline fun <reified T> handleResponse(result: Response, serializer: Json): T = when {
+        !result.isSuccessful -> throw InvalidDataReceivedException(result)
+        else -> serializer.decodeFromStream(result.body.byteStream())
+    }
+
+    private inline fun <reified T> handleResponseOrThrow(result: Response, serializer: Json): T =
+        handleResponse(result, serializer) ?: throw NoDataReceivedException()
+
+    private inner class AsyncJsonCallback<T>(
+        private val onSuccess: ((T) -> Unit),
+        private val onFailure: ((Throwable) -> Unit)?,
+        private val json: Json,
+    ) : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            onFailure?.invoke(e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            runCatching { return@onResponse handleResponseOrThrow(response, json) }
                 .mapCatching(onSuccess)
                 .getOrElse { onFailure?.invoke(it) }
         }
+    }
 
-    private fun <T> handleResponse(result: FuelResult<T, FuelError>): T =
-        result.getOrElse {
-            throw InvalidDataReceivedException(it.exception)
+    private inner class AsyncXmlCallback<T>(
+        private val onSuccess: ((T) -> Unit),
+        private val onFailure: ((Throwable) -> Unit)?,
+        private val xml: XML,
+    ) : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            onFailure?.invoke(e)
         }
 
-    private fun <T> handleResponseOrThrow(result: FuelResult<T, FuelError>): T =
-        handleResponse(result) ?: throw NoDataReceivedException()
+        override fun onResponse(call: Call, response: Response) {
+            runCatching { return@onResponse handleResponseOrThrow(response, xml) }
+                .mapCatching(onSuccess)
+                .getOrElse { onFailure?.invoke(it) }
+        }
+    }
 }

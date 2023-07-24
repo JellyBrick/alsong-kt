@@ -3,7 +3,6 @@ package be.zvz.alsong
 import be.zvz.alsong.dto.LyricUpload
 import be.zvz.alsong.dto.LyricUploadResult
 import be.zvz.alsong.serializer.LyricSerializer
-import com.github.kittinunf.fuel.core.FuelManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -11,6 +10,8 @@ import kotlinx.serialization.serializer
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlElement
+import okhttp3.OkHttpClient
+import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLContext
@@ -20,6 +21,23 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class AlsongTest {
+    private fun OkHttpClient.Builder.ignoreAllSSLErrors(): OkHttpClient.Builder {
+        val naiveTrustManager = object : X509TrustManager {
+            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+            override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) = Unit
+            override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) = Unit
+        }
+
+        val insecureSocketFactory = SSLContext.getInstance("TLSv1.2").apply {
+            val trustAllCerts = arrayOf<TrustManager>(naiveTrustManager)
+            init(null, trustAllCerts, SecureRandom())
+        }.socketFactory
+
+        sslSocketFactory(insecureSocketFactory, naiveTrustManager)
+        hostnameVerifier(HostnameVerifier { _, _ -> true })
+        return this
+    }
+
     @Test fun testParseSOAP() {
         val testString = """<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
@@ -122,19 +140,7 @@ class AlsongTest {
 
     @Test fun testGetResembleLyricList() {
         val classUnderTest = Alsong(
-            fuelManager = FuelManager().apply {
-                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-                    override fun getAcceptedIssuers(): Array<X509Certificate>? = null
-                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                })
-
-                socketFactory = SSLContext.getInstance("SSL").apply {
-                    init(null, trustAllCerts, java.security.SecureRandom())
-                }.socketFactory
-
-                hostnameVerifier = HostnameVerifier { _, _ -> true }
-            },
+            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
         )
         val lyricList = classUnderTest.getResembleLyricList(
             artist = "IU",
@@ -148,19 +154,7 @@ class AlsongTest {
 
     @Test fun testGetLyricById() {
         val classUnderTest = Alsong(
-            fuelManager = FuelManager().apply {
-                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-                    override fun getAcceptedIssuers(): Array<X509Certificate>? = null
-                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                })
-
-                socketFactory = SSLContext.getInstance("SSL").apply {
-                    init(null, trustAllCerts, java.security.SecureRandom())
-                }.socketFactory
-
-                hostnameVerifier = HostnameVerifier { _, _ -> true }
-            },
+            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
         )
         val lyricList = classUnderTest.getResembleLyricList(
             artist = "IU",
@@ -174,19 +168,7 @@ class AlsongTest {
 
     @Test fun testGetLyricByHash() {
         val classUnderTest = Alsong(
-            fuelManager = FuelManager().apply {
-                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-                    override fun getAcceptedIssuers(): Array<X509Certificate>? = null
-                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                })
-
-                socketFactory = SSLContext.getInstance("SSL").apply {
-                    init(null, trustAllCerts, java.security.SecureRandom())
-                }.socketFactory
-
-                hostnameVerifier = HostnameVerifier { _, _ -> true }
-            },
+            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
         )
         println(
             classUnderTest.getLyricByHash("6ab8bfe86f2755774dc8986e8bdff2f0"),
@@ -195,19 +177,7 @@ class AlsongTest {
 
     @Test fun testGetMultiLineLyricByHash() {
         val classUnderTest = Alsong(
-            fuelManager = FuelManager().apply {
-                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-                    override fun getAcceptedIssuers(): Array<X509Certificate>? = null
-                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                })
-
-                socketFactory = SSLContext.getInstance("SSL").apply {
-                    init(null, trustAllCerts, java.security.SecureRandom())
-                }.socketFactory
-
-                hostnameVerifier = HostnameVerifier { _, _ -> true }
-            },
+            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
         )
         println(
             classUnderTest.getLyricByHash("9059c9f520838290f091eb528ac04855"),
@@ -216,19 +186,7 @@ class AlsongTest {
 
     @Test fun testGetLyricByMurekaId() {
         val classUnderTest = Alsong(
-            fuelManager = FuelManager().apply {
-                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-                    override fun getAcceptedIssuers(): Array<X509Certificate>? = null
-                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-                })
-
-                socketFactory = SSLContext.getInstance("SSL").apply {
-                    init(null, trustAllCerts, java.security.SecureRandom())
-                }.socketFactory
-
-                hostnameVerifier = HostnameVerifier { _, _ -> true }
-            },
+            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
         )
         println(
             classUnderTest.getLyricByMurekaId(101547527),

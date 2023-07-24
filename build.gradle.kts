@@ -34,11 +34,10 @@ dependencies {
     // Use the Kotlin JDK 8 standard library.
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8")
 
-    api(group = "com.github.kittinunf.fuel", name = "fuel", version = "2.3.1")
-    implementation(group = "com.github.kittinunf.fuel", name = "fuel-kotlinx-serialization", version = "2.3.1")
+    api(group = "com.squareup.okhttp3", name = "okhttp", version = "5.0.0-alpha.11")
 
-    implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.5.1")
-    implementation(group = "io.github.pdvrieze.xmlutil", name = "serialization-jvm", version = "0.86.1")
+    api(group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.5.1")
+    api(group = "io.github.pdvrieze.xmlutil", name = "serialization-jvm", version = "0.86.1")
 
     // Use the Kotlin test library.
     testImplementation(group = "org.jetbrains.kotlin", name = "kotlin-test")
