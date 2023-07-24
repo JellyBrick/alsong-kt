@@ -13,7 +13,6 @@ import nl.adaptivity.xmlutil.serialization.XmlElement
 import okhttp3.OkHttpClient
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
@@ -34,7 +33,7 @@ class AlsongTest {
         }.socketFactory
 
         sslSocketFactory(insecureSocketFactory, naiveTrustManager)
-        hostnameVerifier(HostnameVerifier { _, _ -> true })
+        hostnameVerifier { _, _ -> true }
         return this
     }
 
