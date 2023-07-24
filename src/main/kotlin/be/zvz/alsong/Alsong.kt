@@ -30,6 +30,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.ResponseBody
 import okio.IOException
 
 class Alsong
@@ -433,7 +434,7 @@ constructor(
     fun matchLyric(
         md5: String,
         lyricId: Long,
-    ): String = createMatchLyricRequest(md5, lyricId).execute().body.string()
+    ): String = createMatchLyricRequest(md5, lyricId).execute().body.use(ResponseBody::string)
 
     @JvmOverloads
     fun matchLyric(
@@ -447,14 +448,16 @@ constructor(
         }
 
         override fun onResponse(call: Call, response: Response) {
-            onSuccess(response.body.string())
+            onSuccess(response.body.use(ResponseBody::string))
         }
     })
 
     @OptIn(ExperimentalXmlUtilApi::class)
     private inline fun <reified T> handleResponse(result: Response, serializer: XML): T = when {
         !result.isSuccessful -> throw InvalidDataReceivedException(result)
-        else -> serializer.decodeFromReader(KtXmlReader(result.body.charStream()))
+        else -> result.body.use {
+            serializer.decodeFromReader(KtXmlReader(it.charStream()))
+        }
     }
 
     private inline fun <reified T> handleResponseOrThrow(result: Response, serializer: XML): T =
@@ -463,7 +466,9 @@ constructor(
     @OptIn(ExperimentalSerializationApi::class)
     private inline fun <reified T> handleResponse(result: Response, serializer: Json): T = when {
         !result.isSuccessful -> throw InvalidDataReceivedException(result)
-        else -> serializer.decodeFromStream(result.body.byteStream())
+        else -> result.body.use {
+            serializer.decodeFromStream(it.byteStream())
+        }
     }
 
     private inline fun <reified T> handleResponseOrThrow(result: Response, serializer: Json): T =
