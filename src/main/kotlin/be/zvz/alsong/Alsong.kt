@@ -375,24 +375,24 @@ constructor(
     )
         .enqueue(
             AsyncXmlCallback<LyricUploadResult>({
-                                                     okHttpClient.newCall(
-                                                         Request.Builder()
-                                                             .url(
-                                                                 "https://alsong-stats.altools.com/v1/${
-                                                                     if (isModifying) "request-modifing-lyric-log" else "new-lyric-log"
-                                                                 }",
-                                                             ).get()
-                                                             .build(),
-                                                     ).enqueue(object : Callback {
-                                                         override fun onFailure(call: Call, e: IOException) {
-                                                             onFailure?.invoke(e)
-                                                         }
+                okHttpClient.newCall(
+                    Request.Builder()
+                        .url(
+                            "https://alsong-stats.altools.com/v1/${
+                                if (isModifying) "request-modifing-lyric-log" else "new-lyric-log"
+                            }",
+                        ).get()
+                        .build(),
+                ).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        onFailure?.invoke(e)
+                    }
 
-                                                         override fun onResponse(call: Call, response: Response) {
-                                                             onSuccess(it)
-                                                         }
-                                                     })
-        }, onFailure, xml),
+                    override fun onResponse(call: Call, response: Response) {
+                        onSuccess(it)
+                    }
+                })
+            }, onFailure, xml),
         )
 
     private fun createMaliciousWordsRequest() = okHttpClient.newCall(
