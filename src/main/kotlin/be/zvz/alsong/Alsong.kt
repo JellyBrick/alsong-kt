@@ -84,16 +84,16 @@ constructor(
         playtime: Int = 0,
         page: Int = 1,
     ): List<SearchResult> = createResembleLyricListRequest(
-            artist,
-            title,
-            playtime,
-            page,
-        ).execute().use {
-            handleResponseOrThrow(
-                it,
-                json,
-            )
-        }
+        artist,
+        title,
+        playtime,
+        page,
+    ).execute().use {
+        handleResponseOrThrow(
+            it,
+            json,
+        )
+    }
 
     @JvmOverloads
     fun getResembleLyricList(
