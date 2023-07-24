@@ -83,15 +83,17 @@ constructor(
         title: String,
         playtime: Int = 0,
         page: Int = 1,
-    ): List<SearchResult> = handleResponseOrThrow(
-        createResembleLyricListRequest(
+    ): List<SearchResult> = createResembleLyricListRequest(
             artist,
             title,
             playtime,
             page,
-        ).execute(),
-        json,
-    )
+        ).execute().use {
+            handleResponseOrThrow(
+                it,
+                json,
+            )
+        }
 
     @JvmOverloads
     fun getResembleLyricList(
@@ -136,14 +138,16 @@ constructor(
         artist: String,
         title: String,
         playtime: Int = 0,
-    ): LyricCount = handleResponseOrThrow(
-        createResembleLyricListCountRequest(
-            artist,
-            title,
-            playtime,
-        ).execute(),
-        json,
-    )
+    ): LyricCount = createResembleLyricListCountRequest(
+        artist,
+        title,
+        playtime,
+    ).execute().use {
+        handleResponseOrThrow(
+            it,
+            json,
+        )
+    }
 
     @JvmOverloads
     fun getResembleLyricListCount(
@@ -175,12 +179,14 @@ constructor(
 
     fun getLyricById(
         lyricId: Long,
-    ): LyricInfo = handleResponseOrThrow(
-        createLyricByIdRequest(
-            lyricId,
-        ).execute(),
-        json,
-    )
+    ): LyricInfo = createLyricByIdRequest(
+        lyricId,
+    ).execute().use {
+        handleResponseOrThrow(
+            it,
+            json,
+        )
+    }
 
     @JvmOverloads
     fun getLyricById(
@@ -208,12 +214,14 @@ constructor(
 
     fun getLyricByHash(
         md5: String,
-    ): LyricLookup = handleResponseOrThrow(
-        createLyricByHash(
-            md5,
-        ).execute(),
-        json,
-    )
+    ): LyricLookup = createLyricByHash(
+        md5,
+    ).execute().use {
+        handleResponseOrThrow(
+            it,
+            json,
+        )
+    }
 
     @JvmOverloads
     fun getLyricByHash(
@@ -241,12 +249,14 @@ constructor(
 
     fun getLyricByMurekaId(
         murekaId: Long,
-    ): List<LyricMurekaId> = handleResponseOrThrow(
-        createLyricByMurekaIdRequest(
-            murekaId,
-        ).execute(),
-        json,
-    )
+    ): List<LyricMurekaId> = createLyricByMurekaIdRequest(
+        murekaId,
+    ).execute().use {
+        handleResponseOrThrow(
+            it,
+            json,
+        )
+    }
 
     @JvmOverloads
     fun getLyricByMurekaId(
@@ -321,21 +331,23 @@ constructor(
         playtime: Long = -1,
         originalLyricId: Long = -1,
     ): LyricUploadResult {
-        val result: LyricUploadResult = handleResponseOrThrow(
-            createUploadLyricPostRequest(
-                isModifying,
-                lyric,
-                md5,
-                registerData,
-                fileName,
-                title,
-                artist,
-                album,
-                playtime,
-                originalLyricId,
-            ).execute(),
-            xml,
-        )
+        val result: LyricUploadResult = createUploadLyricPostRequest(
+            isModifying,
+            lyric,
+            md5,
+            registerData,
+            fileName,
+            title,
+            artist,
+            album,
+            playtime,
+            originalLyricId,
+        ).execute().use {
+            handleResponseOrThrow(
+                it,
+                xml,
+            )
+        }
         okHttpClient.newCall(
             Request.Builder()
                 .url(
@@ -344,8 +356,9 @@ constructor(
                     }",
                 ).get()
                 .build(),
-        ).execute()
-        return result
+        ).execute().use {
+            return result
+        }
     }
 
     @JvmOverloads
@@ -375,7 +388,7 @@ constructor(
         originalLyricId,
     )
         .enqueue(
-            AsyncXmlCallback<LyricUploadResult>({
+            AsyncXmlCallback<LyricUploadResult>({ result ->
                 okHttpClient.newCall(
                     Request.Builder()
                         .url(
@@ -390,7 +403,9 @@ constructor(
                     }
 
                     override fun onResponse(call: Call, response: Response) {
-                        onSuccess(it)
+                        response.use {
+                            onSuccess(result)
+                        }
                     }
                 })
             }, onFailure, xml),
@@ -403,10 +418,12 @@ constructor(
             .build(),
     )
 
-    fun getMaliciousWords(): MaliciousWords = handleResponseOrThrow(
-        createMaliciousWordsRequest().execute(),
-        json,
-    )
+    fun getMaliciousWords(): MaliciousWords = createMaliciousWordsRequest().execute().use {
+        handleResponseOrThrow(
+            it,
+            json,
+        )
+    }
 
     @JvmOverloads
     fun getMaliciousWords(
@@ -453,10 +470,10 @@ constructor(
     })
 
     @OptIn(ExperimentalXmlUtilApi::class)
-    private inline fun <reified T> handleResponse(result: Response, serializer: XML): T = when {
-        !result.isSuccessful -> throw InvalidDataReceivedException(result)
-        else -> result.body.use {
-            serializer.decodeFromReader(KtXmlReader(it.charStream()))
+    private inline fun <reified T> handleResponse(result: Response, serializer: XML): T = result.use {
+        when {
+            !result.isSuccessful -> throw InvalidDataReceivedException(result)
+            else -> serializer.decodeFromReader(KtXmlReader(it.body.charStream()))
         }
     }
 
@@ -464,10 +481,10 @@ constructor(
         handleResponse(result, serializer) ?: throw NoDataReceivedException()
 
     @OptIn(ExperimentalSerializationApi::class)
-    private inline fun <reified T> handleResponse(result: Response, serializer: Json): T = when {
-        !result.isSuccessful -> throw InvalidDataReceivedException(result)
-        else -> result.body.use {
-            serializer.decodeFromStream(it.byteStream())
+    private inline fun <reified T> handleResponse(result: Response, serializer: Json): T = result.use {
+        when {
+            !result.isSuccessful -> throw InvalidDataReceivedException(result)
+            else -> serializer.decodeFromStream(it.body.byteStream())
         }
     }
 
@@ -484,9 +501,11 @@ constructor(
         }
 
         override fun onResponse(call: Call, response: Response) {
-            runCatching { return@onResponse handleResponseOrThrow(response, json) }
-                .mapCatching(onSuccess)
-                .getOrElse { onFailure?.invoke(it) }
+            response.use {
+                runCatching { return@onResponse handleResponseOrThrow(it, json) }
+                    .mapCatching(onSuccess)
+                    .getOrElse { onFailure?.invoke(it) }
+            }
         }
     }
 
@@ -500,9 +519,11 @@ constructor(
         }
 
         override fun onResponse(call: Call, response: Response) {
-            runCatching { return@onResponse handleResponseOrThrow(response, xml) }
-                .mapCatching(onSuccess)
-                .getOrElse { onFailure?.invoke(it) }
+            response.use {
+                runCatching { return@onResponse handleResponseOrThrow(it, xml) }
+                    .mapCatching(onSuccess)
+                    .getOrElse { onFailure?.invoke(it) }
+            }
         }
     }
 }
