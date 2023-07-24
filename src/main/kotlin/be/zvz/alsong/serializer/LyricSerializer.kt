@@ -1,16 +1,12 @@
 package be.zvz.alsong.serializer
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = Map::class)
 object LyricSerializer : KSerializer<Map<Long, List<String>>> {
     private val LYRIC_REGEX = Regex("^(.)?\\[(\\d+):(\\d\\d).(\\d\\d)](.*)\$")
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LyricDeserializer", PrimitiveKind.STRING)
