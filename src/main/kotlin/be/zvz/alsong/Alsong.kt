@@ -48,6 +48,7 @@ constructor(
         autoPolymorphic = true
     },
     private val okHttpClient: OkHttpClient = OkHttpClient(),
+    private val defaultUserAgent: String = "android",
 ) {
     private val defaultHttpUrl = Utils.BASE_URL.toHttpUrl()
 
@@ -58,7 +59,7 @@ constructor(
         page: Int = 1,
     ) = okHttpClient.newCall(
         Request.Builder()
-            .header("User-Agent", "android")
+            .header("User-Agent", defaultUserAgent)
             .url(defaultHttpUrl.resolve("/v1/search")!!)
             .post(
                 FormBody.Builder()
@@ -116,7 +117,7 @@ constructor(
         playtime: Int = 0,
     ) = okHttpClient.newCall(
         Request.Builder()
-            .header("User-Agent", "android")
+            .header("User-Agent", defaultUserAgent)
             .url(defaultHttpUrl.resolve("/v1/search/count")!!)
             .post(
                 FormBody.Builder()
@@ -166,7 +167,7 @@ constructor(
         lyricId: Long,
     ) = okHttpClient.newCall(
         Request.Builder()
-            .header("User-Agent", "android")
+            .header("User-Agent", defaultUserAgent)
             .url(defaultHttpUrl.resolve("/v1/info")!!)
             .post(
                 FormBody.Builder()
@@ -201,7 +202,7 @@ constructor(
         md5: String,
     ) = okHttpClient.newCall(
         Request.Builder()
-            .header("User-Agent", "android")
+            .header("User-Agent", defaultUserAgent)
             .url(defaultHttpUrl.resolve("/v1/lookup")!!)
             .post(
                 FormBody.Builder()
@@ -236,7 +237,7 @@ constructor(
         murekaId: Long,
     ) = okHttpClient.newCall(
         Request.Builder()
-            .header("User-Agent", "android")
+            .header("User-Agent", defaultUserAgent)
             .url(defaultHttpUrl.resolve("/v1/lookupListByMurekaId")!!)
             .post(
                 FormBody.Builder()
@@ -413,7 +414,7 @@ constructor(
 
     private fun createMaliciousWordsRequest() = okHttpClient.newCall(
         Request.Builder()
-            .header("User-Agent", "android")
+            .header("User-Agent", defaultUserAgent)
             .url("https://aldn.altools.co.kr/alsong/maliciouswords.json")
             .build(),
     )
@@ -436,7 +437,7 @@ constructor(
         lyricId: Long,
     ) = okHttpClient.newCall(
         Request.Builder()
-            .header("User-Agent", "android")
+            .header("User-Agent", defaultUserAgent)
             .url("https://aldn.altools.co.kr/alsong/matchlyric.json")
             .post(
                 FormBody.Builder()
