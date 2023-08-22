@@ -36,7 +36,7 @@ dependencies {
 
     api(group = "com.squareup.okhttp3", name = "okhttp", version = "5.0.0-alpha.11")
 
-    api(group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.5.1")
+    api(group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.6.0")
     api(group = "io.github.pdvrieze.xmlutil", name = "serialization-jvm", version = "0.86.1")
 
     // Use the Kotlin test library.
