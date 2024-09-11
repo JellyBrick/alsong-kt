@@ -21,16 +21,28 @@ import kotlin.test.assertTrue
 
 class AlsongTest {
     private fun OkHttpClient.Builder.ignoreAllSSLErrors(): OkHttpClient.Builder {
-        val naiveTrustManager = object : X509TrustManager {
-            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-            override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) = Unit
-            override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) = Unit
-        }
+        val naiveTrustManager =
+            object : X509TrustManager {
+                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
 
-        val insecureSocketFactory = SSLContext.getInstance("TLSv1.2").apply {
-            val trustAllCerts = arrayOf<TrustManager>(naiveTrustManager)
-            init(null, trustAllCerts, SecureRandom())
-        }.socketFactory
+                override fun checkClientTrusted(
+                    certs: Array<X509Certificate>,
+                    authType: String,
+                ) = Unit
+
+                override fun checkServerTrusted(
+                    certs: Array<X509Certificate>,
+                    authType: String,
+                ) = Unit
+            }
+
+        val insecureSocketFactory =
+            SSLContext
+                .getInstance("TLSv1.2")
+                .apply {
+                    val trustAllCerts = arrayOf<TrustManager>(naiveTrustManager)
+                    init(null, trustAllCerts, SecureRandom())
+                }.socketFactory
 
         sslSocketFactory(insecureSocketFactory, naiveTrustManager)
         hostnameVerifier { _, _ -> true }
@@ -48,10 +60,11 @@ class AlsongTest {
         </UploadLyricResponse>
     </soap:Body>
 </soap:Envelope>"""
-        val xml = XML {
-            xmlDeclMode = XmlDeclMode.Charset
-            autoPolymorphic = true
-        }
+        val xml =
+            XML {
+                xmlDeclMode = XmlDeclMode.Charset
+                autoPolymorphic = true
+            }
         val serializer = serializer<LyricUploadResult>()
         val deserialized: LyricUploadResult = xml.decodeFromString(serializer, testString)
         println(xml.encodeToString(deserialized))
@@ -59,28 +72,33 @@ class AlsongTest {
 
     @Test
     fun testLyricSerializer() {
-        val map = mapOf(
-            0L to listOf(
-                "そして君が知らずに幸せな灰になった後で",
-                "소시테 키미가 시라즈니 시아와세나 하이니 낫타 아토데",
-                "그리고 네가 모르는 행복한 재가 되어버린 후에",
-            ),
-            2006L to listOf(
-                "僕は今更君が好きだって",
-                "보쿠와 이마사라 키미가 스키닷테",
-                "나는 이제서야 네가 좋다고",
-            ),
-            2853L to listOf(
-                "大人になりたくないよなんて大人ぶってさ",
-                "오토나니 나리타쿠나이요 난떼 오토나붓테사",
-                "'어른이 되고 싶지 않아'라며 어른인 척 하면서",
-            ),
-        )
+        val map =
+            mapOf(
+                0L to
+                    listOf(
+                        "そして君が知らずに幸せな灰になった後で",
+                        "소시테 키미가 시라즈니 시아와세나 하이니 낫타 아토데",
+                        "그리고 네가 모르는 행복한 재가 되어버린 후에",
+                    ),
+                2006L to
+                    listOf(
+                        "僕は今更君が好きだって",
+                        "보쿠와 이마사라 키미가 스키닷테",
+                        "나는 이제서야 네가 좋다고",
+                    ),
+                2853L to
+                    listOf(
+                        "大人になりたくないよなんて大人ぶってさ",
+                        "오토나니 나리타쿠나이요 난떼 오토나붓테사",
+                        "'어른이 되고 싶지 않아'라며 어른인 척 하면서",
+                    ),
+            )
 
-        val xml = XML {
-            xmlDeclMode = XmlDeclMode.Charset
-            autoPolymorphic = true
-        }
+        val xml =
+            XML {
+                xmlDeclMode = XmlDeclMode.Charset
+                autoPolymorphic = true
+            }
 
         @Serializable
         data class TestClass(
@@ -127,10 +145,11 @@ class AlsongTest {
         </ns1:UploadLyric>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>"""
-        val xml = XML {
-            xmlDeclMode = XmlDeclMode.Charset
-            autoPolymorphic = true
-        }
+        val xml =
+            XML {
+                xmlDeclMode = XmlDeclMode.Charset
+                autoPolymorphic = true
+            }
 
         println(
             xml.decodeFromString<LyricUpload>(testString),
@@ -138,13 +157,15 @@ class AlsongTest {
     }
 
     @Test fun testGetResembleLyricList() {
-        val classUnderTest = Alsong(
-            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
-        )
-        val lyricList = classUnderTest.getResembleLyricList(
-            artist = "IU",
-            title = "이런 엔딩",
-        )
+        val classUnderTest =
+            Alsong(
+                okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
+            )
+        val lyricList =
+            classUnderTest.getResembleLyricList(
+                artist = "IU",
+                title = "이런 엔딩",
+            )
         assertTrue(lyricList.isNotEmpty(), "lyricList is empty")
         println(
             lyricList,
@@ -152,13 +173,15 @@ class AlsongTest {
     }
 
     @Test fun testGetLyricById() {
-        val classUnderTest = Alsong(
-            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
-        )
-        val lyricList = classUnderTest.getResembleLyricList(
-            artist = "IU",
-            title = "Love Poem",
-        )
+        val classUnderTest =
+            Alsong(
+                okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
+            )
+        val lyricList =
+            classUnderTest.getResembleLyricList(
+                artist = "IU",
+                title = "Love Poem",
+            )
         assertTrue(lyricList.isNotEmpty(), "lyricList is empty")
         println(
             classUnderTest.getLyricById(lyricList.first().lyricId),
@@ -166,27 +189,30 @@ class AlsongTest {
     }
 
     @Test fun testGetLyricByHash() {
-        val classUnderTest = Alsong(
-            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
-        )
+        val classUnderTest =
+            Alsong(
+                okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
+            )
         println(
             classUnderTest.getLyricByHash("6ab8bfe86f2755774dc8986e8bdff2f0"),
         )
     }
 
     @Test fun testGetMultiLineLyricByHash() {
-        val classUnderTest = Alsong(
-            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
-        )
+        val classUnderTest =
+            Alsong(
+                okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
+            )
         println(
             classUnderTest.getLyricByHash("9059c9f520838290f091eb528ac04855"),
         )
     }
 
     @Test fun testGetLyricByMurekaId() {
-        val classUnderTest = Alsong(
-            okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
-        )
+        val classUnderTest =
+            Alsong(
+                okHttpClient = OkHttpClient.Builder().ignoreAllSSLErrors().build(),
+            )
         println(
             classUnderTest.getLyricByMurekaId(101547527),
         )
