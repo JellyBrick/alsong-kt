@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class LyricInfo(
-    val registerUrl: String,
+    val registerUrl: String?,
     @SerialName("lyric")
     @Serializable(with = LyricSerializer::class)
     val lyrics: Map<Long, List<String>>,
