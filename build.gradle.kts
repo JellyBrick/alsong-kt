@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.9.25"
+    kotlin("jvm") version "2.1.21"
     kotlin("plugin.serialization") version "1.9.25"
     id("org.jmailen.kotlinter") version "4.4.1"
     `java-library`
